@@ -1,5 +1,5 @@
 package com.example.superherosearch.businesslogic
 
 sealed class SuperHeroAction {
-  object LoadSuperHeroes : SuperHeroAction()
+  data class LoadSuperHeroes(val isCache: Boolean = true) : SuperHeroAction()
 }

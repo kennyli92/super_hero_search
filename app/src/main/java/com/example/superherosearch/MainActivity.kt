@@ -15,6 +15,7 @@ import com.example.superherosearch.extensions.plusAssign
 import com.example.superherosearch.extensions.showSnackBar
 import com.example.superherosearch.log.Logging
 import com.example.superherosearch.recyclerview.SuperHeroAdapter
+import com.jakewharton.rxbinding3.swiperefreshlayout.refreshes
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
@@ -52,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         when (state) {
           is SuperHeroState.Noop -> {}
           is SuperHeroState.ListItem -> onLoadState(state = state)
+          is SuperHeroState.ProcessVisibility -> onProgressVisibility(state = state)
         }
       }, Logging.logErrorAndThrow())
 
@@ -65,7 +67,12 @@ class MainActivity : AppCompatActivity() {
       }, Logging.logErrorAndThrow())
 
     // Action Signals
-    val actionSignal = Observable.just(SuperHeroAction.LoadSuperHeroes as SuperHeroAction)
+    val refreshSignal = binding.superHeroRefresh.refreshes()
+      .map { SuperHeroAction.LoadSuperHeroes(isCache = false) }
+    val actionSignal = Observable.merge(
+      Observable.just(SuperHeroAction.LoadSuperHeroes() as SuperHeroAction),
+      refreshSignal
+    )
 
     disposables += vm.actionHandler(actionSignal = actionSignal)
   }
@@ -80,6 +87,12 @@ class MainActivity : AppCompatActivity() {
   private fun onLoadState(state: SuperHeroState.ListItem) {
     adapter.items = state.superHeroItems
     adapter.notifyDataSetChanged()
+
+    binding.superHeroRefresh.isRefreshing = false
+  }
+
+  private fun onProgressVisibility(state: SuperHeroState.ProcessVisibility) {
+    binding.superHeroProgressbar.visibility = state.visibility.value
   }
 
   /** Event Handlers **/

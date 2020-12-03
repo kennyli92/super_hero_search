@@ -17,12 +17,18 @@
 
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-    <ProgressBar
-      android:id="@+id/ad_progress"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:indeterminate="true"
-      android:layout_gravity="center"
+    <FrameLayout
+      android:id="@+id/super_hero_progressbar"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
       android:visibility="gone"
-      style="?android:attr/progressBarStyleLarge"/>
+      android:background="@android:color/white">
+
+        <ProgressBar
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:indeterminate="true"
+          android:layout_gravity="center"
+          style="?android:attr/progressBarStyleLarge"/>
+    </FrameLayout>
 </FrameLayout>
