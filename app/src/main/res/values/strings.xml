@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Super Hero Search</string>
+    <string name="super_hero_get_not_found">No super heroes found at this time!</string>
+    <string name="super_hero_get_unknown_error">Unknown error - unable to get super heroes at this moment!</string>
 </resources>
