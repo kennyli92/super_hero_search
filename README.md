@@ -2,13 +2,13 @@
 
 This sample Android project implements MVVM using:
 
-Kotlin
-LifeCycle
-ViewModel
-Retrofit
-Moshi
-ViewBinding
-RxJava
-RxBinding
-Dagger/Hilt
-Room
+1. Kotlin
+2. LifeCycle
+3. ViewModel
+4. Retrofit
+5. Moshi
+6. ViewBinding
+7. RxJava
+8. RxBinding
+9. Dagger/Hilt
+10. Room
