@@ -5,6 +5,8 @@ buildscript {
   ext.room_version = '2.2.5'
   ext.glide_version = '4.11.0'
   ext.hilt_version = '2.28-alpha'
+  ext.moshi_version = '1.9.2'
+  ext.retrofit_version = '2.6.4'
 
   repositories {
     google()
