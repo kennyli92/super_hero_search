@@ -10,7 +10,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_margin="16dp"
-    android:textSize="16sp"
+    android:textSize="32sp"
     app:layout_constraintTop_toTopOf="parent"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintEnd_toEndOf="parent"
@@ -21,9 +21,13 @@
       android:id="@+id/super_hero_image"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
+      android:layout_marginTop="16dp"
+      android:minWidth="200dp"
+      android:minHeight="200dp"
       app:layout_constraintTop_toBottomOf="@id/super_hero_name"
       app:layout_constraintBottom_toBottomOf="parent"
       app:layout_constraintStart_toStartOf="parent"
-      app:layout_constraintEnd_toEndOf="parent"/>
+      app:layout_constraintEnd_toEndOf="parent"
+      tools:src="@drawable/ic_wallpaper_24dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
