@@ -98,8 +98,8 @@ class MainActivity : AppCompatActivity() {
     disposables += vm.actionHandler(actionSignal = actionSignal)
   }
 
-  override fun onDestroy() {
-    super.onDestroy()
+  override fun onStop() {
+    super.onStop()
     disposables.clear()
   }
 
