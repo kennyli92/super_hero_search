@@ -1,5 +1,6 @@
 package com.example.superherosearch.data
 
+import androidx.annotation.VisibleForTesting
 import com.example.superherosearch.data.db.SuperHeroDao
 import com.example.superherosearch.data.network.SuperHeroApi
 import io.reactivex.Completable
@@ -10,7 +11,9 @@ class SuperHeroRepository(
   private val superHeroApi: SuperHeroApi,
   private val superHeroDao: SuperHeroDao
 ) {
-  fun getSuperHeroesFromApi(): Single<SuperHeroesResponse> {
+
+  @VisibleForTesting
+  internal fun getSuperHeroesFromApi(): Single<SuperHeroesResponse> {
     return superHeroApi.getSuperHeroes()
       .flatMap {
         val responseCode = it.response()?.code()
@@ -45,7 +48,8 @@ class SuperHeroRepository(
       }
   }
 
-  fun getSuperHeroesFromDb(): Single<SuperHeroesResponse> {
+  @VisibleForTesting
+  internal fun getSuperHeroesFromDb(): Single<SuperHeroesResponse> {
     return superHeroDao.getAllSuperHeroCharacters().firstOrError()
       .flatMap { superHeroCharacters ->
         if (superHeroCharacters.isNotEmpty()) {
