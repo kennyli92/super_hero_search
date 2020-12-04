@@ -87,10 +87,10 @@ class MainActivity : AppCompatActivity() {
 
     // Action Signals
     val refreshSignal = binding.superHeroRefresh.refreshes()
-      .map { SuperHeroAction.LoadSuperHeroes(isCache = false) }
+      .map { SuperHeroAction.GetSuperHeroes(isCache = false) }
 
     val actionSignal = Observable.merge(
-      Observable.just(SuperHeroAction.LoadSuperHeroes() as SuperHeroAction),
+      Observable.just(SuperHeroAction.GetSuperHeroes() as SuperHeroAction),
       refreshSignal,
       searchSignal
     )

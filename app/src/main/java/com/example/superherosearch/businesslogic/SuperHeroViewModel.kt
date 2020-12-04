@@ -53,7 +53,8 @@ class SuperHeroViewModel @ViewModelInject constructor(
       .observeOn(Schedulers.computation())
       .flatMap { action ->
         when (action) {
-          is SuperHeroAction.LoadSuperHeroes -> onLoadSuperHeroes(state = state, action = action)
+          is SuperHeroAction.Load -> onLoad(state = state)
+          is SuperHeroAction.GetSuperHeroes -> onGetSuperHeroes(action = action)
           is SuperHeroAction.Search -> onSearchSuperHeroes(action = action)
         }
       }.subscribe({
@@ -63,40 +64,54 @@ class SuperHeroViewModel @ViewModelInject constructor(
   }
 
   /**
-   * Always load super hero characters from cache (db) by default, unless explicitly
-   * triggered to get latest from the api
+   * Initial data load to populate UI
    */
-  private fun onLoadSuperHeroes(
-    state: SuperHeroState,
-    action: SuperHeroAction.LoadSuperHeroes
+  private fun onLoad(
+    state: SuperHeroState
   ): Observable<StateEvent<SuperHeroState, SuperHeroEvent>> {
-    // if fresh screen, get list of super heroes, else recover the last state
+    // if fresh screen, get list of super heroes from api, else recover the last state
     return if (state == SuperHeroState.Noop) {
-      superHeroRepository.getSuperHeroes(isCache = action.isCache)
-        .observeOn(Schedulers.computation())
-        .flatMapObservable { superHeroesResponse ->
-          val getSuperHeroStateEvent =
-            handleSuperHeroResponse(superHeroesResponse = superHeroesResponse)
-
-          val progressVisibilityState =
-            SuperHeroState.ProcessVisibility(visibility = Visibility.GONE)
-
-          return@flatMapObservable Observable.just(
-            getSuperHeroStateEvent,
-            StateEvent(
-              state = progressVisibilityState,
-              event = SuperHeroEvent.Noop
-            )
-          )
-        }.startWith(
-          StateEvent(
-            SuperHeroState.ProcessVisibility(visibility = Visibility.VISIBLE),
-            SuperHeroEvent.Noop
-          )
-        )
+      getSuperHeroes(isCache = false)
     } else {
       Observable.just(StateEvent(state, SuperHeroEvent.Noop))
     }
+  }
+
+  /**
+   * Always load super hero characters from cache (db) by default, unless explicitly
+   * triggered to get latest from the api
+   */
+  private fun onGetSuperHeroes(
+    action: SuperHeroAction.GetSuperHeroes
+  ): Observable<StateEvent<SuperHeroState, SuperHeroEvent>> {
+    return getSuperHeroes(isCache = action.isCache)
+  }
+
+  private fun getSuperHeroes(
+    isCache: Boolean
+  ): Observable<StateEvent<SuperHeroState, SuperHeroEvent>> {
+    return superHeroRepository.getSuperHeroes(isCache = isCache)
+      .observeOn(Schedulers.computation())
+      .flatMapObservable { superHeroesResponse ->
+        val getSuperHeroStateEvent =
+          handleSuperHeroResponse(superHeroesResponse = superHeroesResponse)
+
+        val progressVisibilityState =
+          SuperHeroState.ProcessVisibility(visibility = Visibility.GONE)
+
+        return@flatMapObservable Observable.just(
+          getSuperHeroStateEvent,
+          StateEvent(
+            state = progressVisibilityState,
+            event = SuperHeroEvent.Noop
+          )
+        )
+      }.startWith(
+        StateEvent(
+          SuperHeroState.ProcessVisibility(visibility = Visibility.VISIBLE),
+          SuperHeroEvent.Noop
+        )
+      )
   }
 
   private fun handleSuperHeroResponse(
