@@ -1,6 +1,7 @@
 package com.example.superherosearch
 
 import android.os.Bundle
+import android.view.Menu
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -40,6 +41,12 @@ class MainActivity : AppCompatActivity() {
     itemDecorator.setDrawable(
       ContextCompat.getDrawable(this, R.color.black)!!)
     binding.superHeroRecyclerView.addItemDecoration(itemDecorator)
+  }
+
+  override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    menuInflater.inflate(R.menu.search_menu, menu)
+
+    return true
   }
 
   override fun onStart() {
