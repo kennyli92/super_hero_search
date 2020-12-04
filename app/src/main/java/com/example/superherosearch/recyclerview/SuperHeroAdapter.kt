@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.superherosearch.R
 import com.example.superherosearch.databinding.ViewSuperHeroBinding
 
-
 class SuperHeroAdapter() : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var items: List<SuperHeroItem> = emptyList()
 

@@ -1,7 +1,8 @@
 package com.example.superherosearch.dagger
 
-import com.example.superherosearch.data.SuperHeroApi
 import com.example.superherosearch.data.SuperHeroRepository
+import com.example.superherosearch.data.db.RoomDb
+import com.example.superherosearch.data.network.SuperHeroApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,7 +12,11 @@ import retrofit2.Retrofit
 
 @Module
 @InstallIn(ActivityComponent::class)
-class ActivityModule {
+object ActivityModule {
+  @ActivityScoped
+  @Provides
+  fun providesSuperHeroDao(roomDb: RoomDb) = roomDb.superHeroDao()
+
   @ActivityScoped
   @Provides
   fun providesSuperHeroApi(

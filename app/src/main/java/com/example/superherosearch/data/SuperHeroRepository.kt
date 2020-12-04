@@ -1,5 +1,6 @@
 package com.example.superherosearch.data
 
+import com.example.superherosearch.data.network.SuperHeroApi
 import io.reactivex.Single
 import java.io.IOException
 
@@ -13,7 +14,9 @@ class SuperHeroRepository(private val superHeroApi: SuperHeroApi) {
             SuperHeroesResponse.Characters(characters = it.response()!!.body()!!.characters)
           responseCode == 404 -> SuperHeroesResponse.NotFound
           !it.isError && responseCode != null ->
-            SuperHeroesResponse.UnknownError(throwable = IOException("Unhandled code: $responseCode"))
+            SuperHeroesResponse.UnknownError(
+              throwable = IOException("Unhandled code: $responseCode")
+            )
           else -> SuperHeroesResponse.UnknownError(throwable = it.error()!!)
         }
       }.onErrorReturn { throwable ->

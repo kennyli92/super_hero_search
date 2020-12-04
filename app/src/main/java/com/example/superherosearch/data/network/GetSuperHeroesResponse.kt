@@ -1,5 +1,6 @@
-package com.example.superherosearch.data
+package com.example.superherosearch.data.network
 
+import com.example.superherosearch.data.SuperHeroCharacter
 import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)

@@ -6,7 +6,7 @@ import com.example.superherosearch.R
 import com.example.superherosearch.databinding.ViewSuperHeroBinding
 
 class SuperHeroImageViewHolder(
-    private val viewBinding: ViewSuperHeroBinding
+  private val viewBinding: ViewSuperHeroBinding
 ) : RecyclerView.ViewHolder(viewBinding.root) {
   companion object {
     private const val TIMEOUT_IN_SECONDS = 30000
