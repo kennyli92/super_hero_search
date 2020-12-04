@@ -2,6 +2,7 @@ package com.example.superherosearch.dagger
 
 import android.content.Context
 import androidx.room.Room
+import com.example.superherosearch.data.db.DaoFactory
 import com.example.superherosearch.data.db.RoomDb
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -41,9 +42,9 @@ object AppModule {
 
   @Singleton
   @Provides
-  fun providesRoomDb(
+  fun providesDaoFactory(
     @ApplicationContext context: Context
-  ): RoomDb {
+  ): DaoFactory {
     return Room.databaseBuilder(context, RoomDb::class.java, "SuperHeroDb").build()
   }
 }

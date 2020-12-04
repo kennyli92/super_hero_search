@@ -1,26 +1,69 @@
 package com.example.superherosearch.data
 
+import com.example.superherosearch.data.db.SuperHeroDao
 import com.example.superherosearch.data.network.SuperHeroApi
+import io.reactivex.Completable
 import io.reactivex.Single
 import java.io.IOException
 
-class SuperHeroRepository(private val superHeroApi: SuperHeroApi) {
-  fun getSuperHeroes(): Single<SuperHeroesResponse> {
+class SuperHeroRepository(
+  private val superHeroApi: SuperHeroApi,
+  private val superHeroDao: SuperHeroDao
+) {
+  fun getSuperHeroesFromApi(): Single<SuperHeroesResponse> {
     return superHeroApi.getSuperHeroes()
-      .map {
+      .flatMap {
         val responseCode = it.response()?.code()
-        when {
-          responseCode == 200 && it.response()?.body() != null ->
-            SuperHeroesResponse.Characters(characters = it.response()!!.body()!!.characters)
-          responseCode == 404 -> SuperHeroesResponse.NotFound
-          !it.isError && responseCode != null ->
-            SuperHeroesResponse.UnknownError(
-              throwable = IOException("Unhandled code: $responseCode")
+        return@flatMap when {
+          responseCode == 200 && it.response()?.body() != null -> {
+            val characters = it.response()!!.body()!!.characters
+            // refresh db with latest super hero characters from api response
+            Completable.fromCallable {
+              superHeroDao.updateAll(superHeroCharacters = characters)
+            }.toSingle {
+              SuperHeroesResponse.Characters(characters = characters)
+            }.onErrorReturn {
+              SuperHeroesResponse.Characters(characters = characters)
+            }
+          }
+          responseCode == 404 -> {
+            Single.just(SuperHeroesResponse.NotFound)
+          }
+          !it.isError && responseCode != null -> {
+            Single.just(
+              SuperHeroesResponse.UnknownError(
+                throwable = IOException("Unhandled code: $responseCode")
+              )
             )
-          else -> SuperHeroesResponse.UnknownError(throwable = it.error()!!)
+          }
+          else -> Single.just(
+            SuperHeroesResponse.UnknownError(throwable = it.error()!!)
+          )
         }
       }.onErrorReturn { throwable ->
         SuperHeroesResponse.UnknownError(throwable = throwable)
       }
+  }
+
+  fun getSuperHeroesFromDb(): Single<SuperHeroesResponse> {
+    return superHeroDao.getAllSuperHeroCharacters().firstOrError()
+      .flatMap { superHeroCharacters ->
+        if (superHeroCharacters.isNotEmpty()) {
+          Single.just(SuperHeroesResponse.Characters(characters = superHeroCharacters) as SuperHeroesResponse)
+        } else {
+          getSuperHeroesFromApi()
+        }
+      }.onErrorResumeNext {
+        // fallback to network call to fetch super hero characters if db failed to get
+        getSuperHeroesFromApi()
+      }
+  }
+
+  fun getSuperHeroes(isCache: Boolean): Single<SuperHeroesResponse> {
+    return if (isCache) {
+      getSuperHeroesFromDb()
+    } else {
+      getSuperHeroesFromApi()
+    }
   }
 }

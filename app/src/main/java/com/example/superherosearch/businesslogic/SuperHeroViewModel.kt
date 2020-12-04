@@ -53,7 +53,7 @@ class SuperHeroViewModel @ViewModelInject constructor(
       .observeOn(Schedulers.computation())
       .flatMap { action ->
         when (action) {
-          is SuperHeroAction.LoadSuperHeroes -> onLoadSuperHeroes()
+          is SuperHeroAction.LoadSuperHeroes -> onLoadSuperHeroes(action = action)
         }
       }.subscribe({
         this.state = it.state
@@ -62,10 +62,13 @@ class SuperHeroViewModel @ViewModelInject constructor(
   }
 
   /**
-   * We can do state recovery onLoad() should there be a need
+   * Always load super hero characters from cache (db) by default, unless explicitly
+   * triggered to get latest from the api
    */
-  private fun onLoadSuperHeroes(): Observable<StateEvent<SuperHeroState, SuperHeroEvent>> {
-    return superHeroRepository.getSuperHeroes()
+  private fun onLoadSuperHeroes(
+    action: SuperHeroAction.LoadSuperHeroes
+  ): Observable<StateEvent<SuperHeroState, SuperHeroEvent>> {
+    return superHeroRepository.getSuperHeroes(isCache = action.isCache)
       .observeOn(Schedulers.computation())
       .flatMapObservable { superHeroResponse ->
         val getSuperHeroStateEvent = when (superHeroResponse) {

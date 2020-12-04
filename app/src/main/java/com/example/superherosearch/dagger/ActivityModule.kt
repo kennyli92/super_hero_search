@@ -1,7 +1,9 @@
 package com.example.superherosearch.dagger
 
 import com.example.superherosearch.data.SuperHeroRepository
+import com.example.superherosearch.data.db.DaoFactory
 import com.example.superherosearch.data.db.RoomDb
+import com.example.superherosearch.data.db.SuperHeroDao
 import com.example.superherosearch.data.network.SuperHeroApi
 import dagger.Module
 import dagger.Provides
@@ -15,7 +17,7 @@ import retrofit2.Retrofit
 object ActivityModule {
   @ActivityScoped
   @Provides
-  fun providesSuperHeroDao(roomDb: RoomDb) = roomDb.superHeroDao()
+  fun providesSuperHeroDao(daoFactory: DaoFactory) = daoFactory.superHeroDao()
 
   @ActivityScoped
   @Provides
@@ -28,8 +30,9 @@ object ActivityModule {
   @ActivityScoped
   @Provides
   fun providesSuperHeroRepository(
-    superHeroApi: SuperHeroApi
+    superHeroApi: SuperHeroApi,
+    superHeroDao: SuperHeroDao
   ): SuperHeroRepository {
-    return SuperHeroRepository(superHeroApi = superHeroApi)
+    return SuperHeroRepository(superHeroApi = superHeroApi, superHeroDao = superHeroDao)
   }
 }
