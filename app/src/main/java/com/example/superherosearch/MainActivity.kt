@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,10 +17,12 @@ import com.example.superherosearch.extensions.plusAssign
 import com.example.superherosearch.extensions.showSnackBar
 import com.example.superherosearch.log.Logging
 import com.example.superherosearch.recyclerview.SuperHeroAdapter
+import com.jakewharton.rxbinding3.appcompat.queryTextChanges
 import com.jakewharton.rxbinding3.swiperefreshlayout.refreshes
 import dagger.hilt.android.AndroidEntryPoint
 import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.subjects.PublishSubject
 
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
@@ -28,7 +31,9 @@ class MainActivity : AppCompatActivity() {
 
   private lateinit var adapter: SuperHeroAdapter
   private lateinit var binding: ActivityMainBinding
+  private lateinit var searchView: SearchView
   private val disposables = CompositeDisposable()
+  private val searchSignal = PublishSubject.create<SuperHeroAction.Search>()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -45,7 +50,14 @@ class MainActivity : AppCompatActivity() {
 
   override fun onCreateOptionsMenu(menu: Menu?): Boolean {
     menuInflater.inflate(R.menu.search_menu, menu)
-
+    searchView = menu?.findItem(R.id.search)?.actionView as SearchView
+    disposables += searchView.queryTextChanges()
+      .skip(1)
+      .map { query ->
+        SuperHeroAction.Search(query = query.toString())
+      }.subscribe({ searchAction ->
+        searchSignal.onNext(searchAction)
+      }, Logging.logErrorAndThrow())
     return true
   }
 
@@ -76,9 +88,11 @@ class MainActivity : AppCompatActivity() {
     // Action Signals
     val refreshSignal = binding.superHeroRefresh.refreshes()
       .map { SuperHeroAction.LoadSuperHeroes(isCache = false) }
+
     val actionSignal = Observable.merge(
       Observable.just(SuperHeroAction.LoadSuperHeroes() as SuperHeroAction),
-      refreshSignal
+      refreshSignal,
+      searchSignal
     )
 
     disposables += vm.actionHandler(actionSignal = actionSignal)

@@ -53,7 +53,8 @@ class SuperHeroViewModel @ViewModelInject constructor(
       .observeOn(Schedulers.computation())
       .flatMap { action ->
         when (action) {
-          is SuperHeroAction.LoadSuperHeroes -> onLoadSuperHeroes(action = action)
+          is SuperHeroAction.LoadSuperHeroes -> onLoadSuperHeroes(state = state, action = action)
+          is SuperHeroAction.Search -> onSearchSuperHeroes(action = action)
         }
       }.subscribe({
         this.state = it.state
@@ -66,62 +67,90 @@ class SuperHeroViewModel @ViewModelInject constructor(
    * triggered to get latest from the api
    */
   private fun onLoadSuperHeroes(
+    state: SuperHeroState,
     action: SuperHeroAction.LoadSuperHeroes
   ): Observable<StateEvent<SuperHeroState, SuperHeroEvent>> {
-    return superHeroRepository.getSuperHeroes(isCache = action.isCache)
-      .observeOn(Schedulers.computation())
-      .flatMapObservable { superHeroResponse ->
-        val getSuperHeroStateEvent = when (superHeroResponse) {
-          is SuperHeroesResponse.Characters -> {
-            val superHeroItems = superHeroResponse.characters.map { superHeroCharacter ->
-              SuperHeroItem.Image(
-                name = superHeroCharacter.name,
-                imageUrl = superHeroCharacter.image.url
-              )
-            }
-            StateEvent(
-              SuperHeroState.ListItem(
-                superHeroItems = superHeroItems
-              ),
-              SuperHeroEvent.Noop
-            )
-          }
-          is SuperHeroesResponse.NotFound ->
-            StateEvent(
-              SuperHeroState.Noop,
-              SuperHeroEvent.Snackbar(
-                vm = SnackbarViewModel(
-                  messageResId = R.string.super_hero_get_not_found,
-                  duration = Snackbar.LENGTH_LONG
-                )
-              )
-            )
-          is SuperHeroesResponse.UnknownError ->
-            StateEvent(
-              SuperHeroState.Noop,
-              SuperHeroEvent.Snackbar(
-                vm = SnackbarViewModel(
-                  messageResId = R.string.super_hero_get_unknown_error,
-                  duration = Snackbar.LENGTH_LONG
-                )
-              )
-            )
-        }
+    // if fresh screen, get list of super heroes, else recover the last state
+    return if (state == SuperHeroState.Noop) {
+      superHeroRepository.getSuperHeroes(isCache = action.isCache)
+        .observeOn(Schedulers.computation())
+        .flatMapObservable { superHeroesResponse ->
+          val getSuperHeroStateEvent =
+            handleSuperHeroResponse(superHeroesResponse = superHeroesResponse)
 
-        val progressVisibilityState = SuperHeroState.ProcessVisibility(visibility = Visibility.GONE)
+          val progressVisibilityState =
+            SuperHeroState.ProcessVisibility(visibility = Visibility.GONE)
 
-        return@flatMapObservable Observable.just(
-          getSuperHeroStateEvent,
+          return@flatMapObservable Observable.just(
+            getSuperHeroStateEvent,
+            StateEvent(
+              state = progressVisibilityState,
+              event = SuperHeroEvent.Noop
+            )
+          )
+        }.startWith(
           StateEvent(
-            state = progressVisibilityState,
-            event = SuperHeroEvent.Noop
+            SuperHeroState.ProcessVisibility(visibility = Visibility.VISIBLE),
+            SuperHeroEvent.Noop
           )
         )
-      }.startWith(
+    } else {
+      Observable.just(StateEvent(state, SuperHeroEvent.Noop))
+    }
+  }
+
+  private fun handleSuperHeroResponse(
+    superHeroesResponse: SuperHeroesResponse
+  ): StateEvent<SuperHeroState, SuperHeroEvent> {
+    return when (superHeroesResponse) {
+      is SuperHeroesResponse.Characters -> {
+        val superHeroItems = superHeroesResponse.characters.map { superHeroCharacter ->
+          SuperHeroItem.Image(
+            name = superHeroCharacter.name,
+            imageUrl = superHeroCharacter.image.url
+          )
+        }
         StateEvent(
-          SuperHeroState.ProcessVisibility(visibility = Visibility.VISIBLE),
+          SuperHeroState.ListItem(
+            superHeroItems = superHeroItems
+          ),
           SuperHeroEvent.Noop
         )
-      )
+      }
+      is SuperHeroesResponse.NotFound ->
+        StateEvent(
+          SuperHeroState.Noop,
+          SuperHeroEvent.Snackbar(
+            vm = SnackbarViewModel(
+              messageResId = R.string.super_hero_get_not_found,
+              duration = Snackbar.LENGTH_LONG
+            )
+          )
+        )
+      is SuperHeroesResponse.UnknownError ->
+        StateEvent(
+          SuperHeroState.Noop,
+          SuperHeroEvent.Snackbar(
+            vm = SnackbarViewModel(
+              messageResId = R.string.super_hero_get_unknown_error,
+              duration = Snackbar.LENGTH_LONG
+            )
+          )
+        )
+    }
+  }
+
+  // do a super hero search from our db cache
+  private fun onSearchSuperHeroes(
+    action: SuperHeroAction.Search
+  ): Observable<StateEvent<SuperHeroState, SuperHeroEvent>> {
+    return superHeroRepository.searchSuperHeroes(query = action.query)
+      .observeOn(Schedulers.computation())
+      .flatMapObservable { superHeroesResponse ->
+        val getSuperHeroStateEvent =
+          handleSuperHeroResponse(superHeroesResponse = superHeroesResponse)
+
+        return@flatMapObservable Observable.just(getSuperHeroStateEvent)
+      }
   }
 }

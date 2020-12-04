@@ -2,7 +2,6 @@ package com.example.superherosearch.dagger
 
 import com.example.superherosearch.data.SuperHeroRepository
 import com.example.superherosearch.data.db.DaoFactory
-import com.example.superherosearch.data.db.RoomDb
 import com.example.superherosearch.data.db.SuperHeroDao
 import com.example.superherosearch.data.network.SuperHeroApi
 import dagger.Module

@@ -49,7 +49,8 @@ class SuperHeroRepository(
     return superHeroDao.getAllSuperHeroCharacters().firstOrError()
       .flatMap { superHeroCharacters ->
         if (superHeroCharacters.isNotEmpty()) {
-          Single.just(SuperHeroesResponse.Characters(characters = superHeroCharacters) as SuperHeroesResponse)
+          Single.just(
+            SuperHeroesResponse.Characters(characters = superHeroCharacters) as SuperHeroesResponse)
         } else {
           getSuperHeroesFromApi()
         }
@@ -65,5 +66,17 @@ class SuperHeroRepository(
     } else {
       getSuperHeroesFromApi()
     }
+  }
+
+  /**
+   * Search for super hero that begins with query
+   */
+  fun searchSuperHeroes(query: String): Single<SuperHeroesResponse> {
+    return superHeroDao.searchSuperHeroCharacters(query = query).firstOrError()
+      .map { characters ->
+        SuperHeroesResponse.Characters(characters = characters) as SuperHeroesResponse
+      }.onErrorReturn {
+        SuperHeroesResponse.NotFound
+      }
   }
 }

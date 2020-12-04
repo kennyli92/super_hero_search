@@ -7,8 +7,6 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.example.superherosearch.data.SuperHeroCharacter
 import io.reactivex.Flowable
-import io.reactivex.Maybe
-import io.reactivex.Single
 
 @Dao
 interface SuperHeroDao {
@@ -33,4 +31,10 @@ interface SuperHeroDao {
 
   @Query("SELECT * FROM SuperHeroCharacters")
   fun getAllSuperHeroCharacters(): Flowable<List<SuperHeroCharacter>>
+
+  /**
+   * Search for super hero that begins with query
+   */
+  @Query("SELECT * FROM SuperHeroCharacters WHERE name LIKE :query || '%'")
+  fun searchSuperHeroCharacters(query: String): Flowable<List<SuperHeroCharacter>>
 }
